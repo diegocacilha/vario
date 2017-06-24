@@ -1,8 +1,7 @@
 #include <SFE_BMP180.h>
 #include <Wire.h>
 
-double lowpassFast, lowpassSlow, pressao, toneFreq, toneFreqLowpass;
-int ddsAcc;
+double pressao, temperatura, temp;
 
 SFE_BMP180 barometro;
 
@@ -13,62 +12,40 @@ void setup() {
   status = barometro.begin();
   if (!status) {
     Serial.println("Erro na inicialização do barômetro\n");
+  }else {
+    Serial.println("Barômetro inicializado com sucesso\n");
   }
   pressao = getPressao();
-  lowpassFast = lowpassSlow = pressao;
-}
-int cont = 0;
-void loop() {
-  pressao = getPressao();
-
+  temperatura = getTemperatura();
+  Serial.print("Temperatura: ");
+  Serial.println(temperatura);
   Serial.print("Pressão: ");
   Serial.println(pressao);
   
-  Serial.print("lowpassFast antes: ");
-  Serial.println(lowpassFast);
-  lowpassFast = lowpassFast + (pressao - lowpassFast) * 0.5;//era 0.1
-  Serial.print("lowpassFast depois: ");
-  Serial.println(lowpassFast);
-  
-  Serial.print("lowpassSlow antes: ");
-  Serial.println(lowpassSlow);
-  lowpassSlow = lowpassSlow + (pressao - lowpassSlow) * 0.25;//era 0.05
-  Serial.print("lowpassSlow depois: ");
-  Serial.println(lowpassSlow);
-  
-  Serial.print("toneFreq antes: ");
-  Serial.println(toneFreq);
-  toneFreq = (lowpassSlow - lowpassFast) * 50;
-  Serial.print("toneFreq depois: ");
-  Serial.println(toneFreq);
+}
+int cont = 0;
+int tempo;
+void loop() {
+  double i;
+  pressao = getPressao();
+  i = pressao - temp;
 
-  Serial.print("toneFreqLowpass antes: ");
-  Serial.println(toneFreqLowpass);
-  toneFreqLowpass = toneFreqLowpass + (toneFreq - toneFreqLowpass) * 0.1;
-  Serial.print("toneFreqLowpass depois: ");
-  Serial.println(toneFreqLowpass);
-
-  Serial.print("toneFreq antes constrain: ");
-  Serial.println(toneFreq);
-  toneFreq = constrain(toneFreqLowpass, -500, 500);
-  Serial.print("toneFreq depois constrain: ");
-  Serial.println(toneFreq);
-
-  Serial.print("ddsAcc antes: ");
-  Serial.println(ddsAcc);
-  ddsAcc += toneFreq * 100 + 2000;
-  Serial.print("ddsAcc depois: ");
-  Serial.println(ddsAcc);
-
-  if (toneFreq < 0 || ddsAcc > 0){
-    tone(10, toneFreq + 2100);
-    Serial.print("toneFreq: ");
-    Serial.println(toneFreq + 2100);
-  }else{
-    noTone(10);
+  if(i > 0.20){
+    //Serial.println(i);
+    tone(10, 2850, 100);
+    tempo = 120;
+  }else if(i < -0.20){
+    //Serial.println(i);
+    tone(10, 2400, 15);
+    tempo = 20;
+  }else {
+    Serial.println(i);
+    tone(10, 2000, 200);
+    tempo = 210;
   }
-  Serial.println("-----------------------------");
-  //delay(10);
+  delay(tempo);
+  Serial.println(i);
+  temp = pressao;
 }
 
 double getPressao() {
