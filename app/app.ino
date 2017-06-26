@@ -1,7 +1,8 @@
 #include <SFE_BMP180.h>
 #include <Wire.h>
 
-double pressao, temperatura, temp;
+double pressao, temperatura;
+double p2;
 
 SFE_BMP180 barometro;
 
@@ -15,7 +16,9 @@ void setup() {
   }else {
     Serial.println("Barômetro inicializado com sucesso\n");
   }
-  pressao = getPressao();
+  //pressao = getPressao();
+  pressao = 1013.25;
+  p2 = pressao;
   temperatura = getTemperatura();
   Serial.print("Temperatura: ");
   Serial.println(temperatura);
@@ -23,29 +26,34 @@ void setup() {
   Serial.println(pressao);
   
 }
-int cont = 0;
-int tempo;
-void loop() {
-  double i;
-  pressao = getPressao();
-  i = pressao - temp;
 
-  if(i > 0.20){
-    //Serial.println(i);
-    tone(10, 2850, 100);
-    tempo = 120;
-  }else if(i < -0.20){
-    //Serial.println(i);
-    tone(10, 2400, 15);
-    tempo = 20;
+void loop() {
+  //pressao = getPressao();
+  pressao -= 0.25;
+  bip();
+  p2 = pressao;
+  delay(5000);
+}
+
+void bip(){
+  double result, T;// T = tempo do sinal sonoro
+  result =  pressao - p2;
+  Serial.print("resultado ");
+  Serial.println(result);
+  
+  T = result * 5000;
+  Serial.print("tempo ");
+  Serial.println(T);
+  
+  //T = constrain(T, 0, 1000);
+  //Serial.println(result);
+  if(result < 0){
+    tone(10, 1800, T);
+    //delay(T + 100);
   }else {
-    Serial.println(i);
-    tone(10, 2000, 200);
-    tempo = 210;
+    noTone(10);
   }
-  delay(tempo);
-  Serial.println(i);
-  temp = pressao;
+  
 }
 
 double getPressao() {
