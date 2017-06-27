@@ -16,8 +16,7 @@ void setup() {
   }else {
     Serial.println("Barômetro inicializado com sucesso\n");
   }
-  //pressao = getPressao();
-  pressao = 1013.25;
+  pressao = getPressao();
   p2 = pressao;
   temperatura = getTemperatura();
   Serial.print("Temperatura: ");
@@ -28,32 +27,36 @@ void setup() {
 }
 
 void loop() {
-  //pressao = getPressao();
-  pressao -= 0.25;
+  pressao = getPressao();
   bip();
   p2 = pressao;
-  delay(5000);
 }
 
 void bip(){
   double result, T;// T = tempo do sinal sonoro
   result =  pressao - p2;
-  Serial.print("resultado ");
-  Serial.println(result);
   
-  T = result * 5000;
-  Serial.print("tempo ");
-  Serial.println(T);
-  
-  //T = constrain(T, 0, 1000);
-  //Serial.println(result);
-  if(result < 0){
-    tone(10, 1800, T);
-    //delay(T + 100);
+  T = (1000 * (result * 2)) - 1000;
+  if(T < 0) T = T * (-1);
+
+  if(result > 0.07){
+    tone(10, 1700, (0.75 * T));  
+  }else if(result < (-0.07)){
+    tone(10, 2900, (0.50 * T));
   }else {
-    noTone(10);
+    /*
+     * Aqui eu tinha colocado o 'zerinho', mas notei que o buzzer consome muita bateria e resolvi tirar.
+     */
+//    for(int i = 1900; i < 2200; i++){
+//      tone(10, i);
+//      delay(1);
+//    }
+//    noTone(10);
   }
   
+  
+  Serial.println(T);
+  delay(T);
 }
 
 double getPressao() {
